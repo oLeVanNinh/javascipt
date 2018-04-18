@@ -1,0 +1,50 @@
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 75%;
+    margin: auto;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+
+td:last-child {
+	width: 30px;
+}
+h1{
+	text-align: center;
+	margin-bottom: 10px;
+}
+
+#newbook {
+	margin-bottom: 10px;
+	margin-left: 33px;
+}
+
+#submit {
+	margin-top: 10px;
+}
+
+#back {
+	width: 100%;
+	margin-top: 10px;
+}
+
+#alert {
+	 color: red;
+	 text-align: center;
+	 font-size: 20px;
+}
+
+#added {
+	color: red;
+	font-size: 25px;
+	margin-left: 40px;
+}
