@@ -22,4 +22,30 @@ td {
     word-wrap: break-word;
     overflow: hidden;
     cursor: pointer;
-  }
+}
+
+
+.player_mode label {
+  padding: 10px 20px;
+  background-color: orange;
+  border: thin  solid darkorange;
+  border-radius: 10px;
+  margin: 5px;
+  display: inline-block;
+}
+
+#player_mode {
+  text-align: center;
+}
+
+input[type="radio"] {
+  display: none;
+}
+
+
+input[type="radio"]:checked + label {
+  background-color: darkcyan;
+  cursor: default;
+  color: #E6E6E6;
+  margin: auto;
+}

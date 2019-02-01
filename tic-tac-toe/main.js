@@ -1,12 +1,28 @@
 $(document).ready(function() {
   let board = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   let state = 1;
-  const player = (name, mark) => {
-    return {name, mark};
+  let mode;
+
+
+  const player = (id, name, mark) => {
+    return {id, name, mark};
   }
 
   let player1;
   let player2;
+
+  function setMode(e) {
+    mode = e.target.value;
+    $('#player1').removeClass('hidden');
+    $('#player_mode').addClass('hidden');
+  }
+
+
+  $("input[type='radio']").on('click', (e) => {
+    setTimeout(function() {
+      setMode(e)
+    }, 200);
+  })
 
   $('#form1').on('submit',(event) => {
     event.preventDefault();
@@ -17,14 +33,22 @@ $(document).ready(function() {
       alert("name can't be blank");
     }
     else {
-      player1 = player(name, select);
+      player1 = player(1, name, select);
       $('#player1').addClass('hidden');
-      $('#player2').removeClass('hidden');
       let value = player1.mark == "X" ? "O" : "X";
-      let option = document.createElement('option');
-      option.value = value;
-      option.innerHTML = value;
-      document.getElementById('select2').appendChild(option);
+
+      if (mode !== "0") {
+        $('#player2').removeClass('hidden');
+        let option = document.createElement('option');
+        option.value = value;
+        option.innerHTML = value;
+        document.getElementById('select2').appendChild(option);
+      }
+      else {
+        player2 = player(2, "Computer", value)
+        $('#player1').addClass('hidden');
+        $('table').removeClass('hidden');
+      }
     }
   });
 
@@ -37,7 +61,7 @@ $(document).ready(function() {
     }
     else {
       let select_value = player1.mark == "X" ? "O" : "X";
-      player2 = player(name, select_value);
+      player2 = player(2, name, select_value);
       $('#player2').addClass('hidden');
       $('table').removeClass('hidden');
     }
@@ -70,40 +94,97 @@ $(document).ready(function() {
     $('td').html("");
   }
 
-$('td').on('click', function() {
-  let id = $(this).attr('id');
-  if (board[id] != "X" && board[id] != "O") {
-    if (state == 1) {
-      $(this).html(player1.mark);
-      board[id] = player1.mark;
-      state = 2;
+  function minimax(newBoard, player) {
+    var availSpots = avail(newBoard);
 
-      if (winning(board, player1.mark)) {
-        setTimeout(() => {
-          alert(player1.name + ' win');
-          reset();
-        },100)
+    if (winning(newBoard, player1)) {
+      return { score: -10 }
+    }
+    else if (winning(newBoard, player2)) {
+      return { score: 10 }
+    }
+    else if (winning(availSpots.length === 0)) {
+      return { score: 0 }
+    }
+
+    var moves = [];
+
+    for (var i = 0; i < availSpots.length; i++) {
+      var move = {};
+      move.index = newBoad[availSpots[i]];
+      newBoard[availSpots[i]] = player.mark;
+
+      if (player.id == 1) {
+        var result = minimax(newBoard, player2)
+        move.score = result.score
       }
-      else if (avail(board).length == 0) {
-        setTimeout(function() {
-          alert("This is a tie");
-          reset();
-        },100);
+      else {
+        var result = minimax(newBoard, player1)
+        move.score = result.score;
+      }
+      newBoard[availSpots[i]] = move.index;
+      moves.push(moves);
+    }
+
+    var bestMove;
+
+    if (player.id == 1) {
+      var bestScore = -10000;
+      for (var i = 0; i < moves.length; i++) {
+        if(moves[i].score > bestScore) {
+          bestScore = moves[i].score;
+          bestMove = i;
+        }
       }
     }
     else {
-      $(this).html(player2.mark);
-      board[id] = player2.mark;
-      state = 1;
-
-      if (winning(board, player2.mark)) {
-        setTimeout(() => {
-          alert(player2.name + ' win');
-          reset();
-        },100)
+      var bestScore = 10000;
+      for(var i = 0; i < moves.length; i++) {
+        if (moves[i].score < bestMove) {
+          bestScore = moves[i].score;
+          bestMove = i;
+        }
       }
     }
-  }
-});
 
+    return moves[bestMove]
+  }
+
+
+  $('td').on('click', function() {
+    let id = $(this).attr('id');
+    if (board[id] != "X" && board[id] != "O") {
+      if (state == 1) {
+        $(this).html(player1.mark);
+        board[id] = player1.mark;
+        state = 2;
+        minimax(board, player2)
+
+        if (winning(board, player1.mark)) {
+          setTimeout(() => {
+            alert(player1.name + ' win');
+            reset();
+          },100)
+        }
+        else if (avail(board).length == 0) {
+          setTimeout(function() {
+            alert("This is a tie");
+            reset();
+          },100);
+        }
+      }
+      else if ((state == 2) && (mode !== "0")){
+        $(this).html(player2.mark);
+        board[id] = player2.mark;
+        state = 1;
+
+        if (winning(board, player2.mark)) {
+          setTimeout(() => {
+            alert(player2.name + ' win');
+            reset();
+          },100)
+        }
+      }
+    }
+  });
 });
