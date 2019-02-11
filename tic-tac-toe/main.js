@@ -2,6 +2,7 @@ $(document).ready(function() {
   let board = [0, 1, 2, 3, 4, 5, 6, 7, 8];
   let state = 1;
   let mode;
+  var iter = 0;
 
 
   const player = (id, name, mark) => {
@@ -85,6 +86,7 @@ $(document).ready(function() {
   };
 
   function avail(reboard) {
+    console.log(reboard);
     return reboard.filter(e => e != "X" && e != "O");
   };
 
@@ -94,60 +96,71 @@ $(document).ready(function() {
     $('td').html("");
   }
 
-  function minimax(newBoard, player) {
-    var availSpots = avail(newBoard);
+  function return_score(board, reboard) {
+    if (winning(board, player1.mark)) {
+      return { score: -10 };
+    }
+    else if (winning(board, player2.mark)) {
+      return { score: 10 };
+    }
+    else if (reboard.length === 0) {
+      return { score: 0};
+    }
+  }
 
-    if (winning(newBoard, player1)) {
-      return { score: -10 }
-    }
-    else if (winning(newBoard, player2)) {
-      return { score: 10 }
-    }
-    else if (winning(availSpots.length === 0)) {
-      return { score: 0 }
+  function minimax(reboard, player) {
+    iter++;
+    let array = avail(reboard);
+    if (winning(reboard, player1.mark)) {
+      return {
+        score: -10
+      };
+    } else if (winning(reboard, player2.mark)) {
+      return {
+        score: 10
+      };
+    } else if (array.length === 0) {
+      return {
+        score: 0
+      };
     }
 
     var moves = [];
-
-    for (var i = 0; i < availSpots.length; i++) {
+    for (var i = 0; i < array.length; i++) {
       var move = {};
-      move.index = newBoad[availSpots[i]];
-      newBoard[availSpots[i]] = player.mark;
+      move.index = reboard[array[i]];
+      reboard[array[i]] = player.mark;
 
       if (player.id == 1) {
-        var result = minimax(newBoard, player2)
-        move.score = result.score
+        var g = minimax(reboard, player2);
+        move.score = g.score;
+      } else {
+        var g = minimax(reboard, player1);
+        move.score = g.score;
       }
-      else {
-        var result = minimax(newBoard, player1)
-        move.score = result.score;
-      }
-      newBoard[availSpots[i]] = move.index;
-      moves.push(moves);
+      reboard[array[i]] = move.index;
+      moves.push(move);
     }
 
     var bestMove;
-
-    if (player.id == 1) {
+    if (player.id === 2) {
       var bestScore = -10000;
       for (var i = 0; i < moves.length; i++) {
-        if(moves[i].score > bestScore) {
+        if (moves[i].score > bestScore) {
           bestScore = moves[i].score;
           bestMove = i;
         }
       }
-    }
-    else {
+    } else {
       var bestScore = 10000;
-      for(var i = 0; i < moves.length; i++) {
-        if (moves[i].score < bestMove) {
+      for (var i = 0; i < moves.length; i++) {
+        if (moves[i].score < bestScore) {
           bestScore = moves[i].score;
           bestMove = i;
         }
       }
     }
-
-    return moves[bestMove]
+    return moves[bestMove];
   }
 
 
@@ -158,7 +171,6 @@ $(document).ready(function() {
         $(this).html(player1.mark);
         board[id] = player1.mark;
         state = 2;
-        minimax(board, player2)
 
         if (winning(board, player1.mark)) {
           setTimeout(() => {
@@ -172,11 +184,25 @@ $(document).ready(function() {
             reset();
           },100);
         }
+        if ( mode == "0") {
+          let target = minimax(board, player2).index;
+          $(`#${target}`).html(player2.mark);
+          board[target] = player2.mark;
+          state = 1;
+          if (winning(board, player2.mark)) {
+            setTimeout(() => {
+              alert(player2.name + ' win');
+              reset();
+            },100)
+          }
+        }
       }
-      else if ((state == 2) && (mode !== "0")){
-        $(this).html(player2.mark);
-        board[id] = player2.mark;
-        state = 1;
+      else if (state == 2) {
+        if ( mode !== "0" ) {
+          $(this).html(player2.mark);
+          board[id] = player2.mark;
+          state = 1;
+        }
 
         if (winning(board, player2.mark)) {
           setTimeout(() => {
