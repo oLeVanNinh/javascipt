@@ -86,13 +86,12 @@ $(document).ready(function() {
   };
 
   function avail(reboard) {
-    console.log(reboard);
     return reboard.filter(e => e != "X" && e != "O");
   };
 
   function reset() {
     state = 1;
-    board = [1, 2, 3 ,4 ,5 ,6 , 7, 8];
+    board = [0, 1, 2, 3, 4, 5, 6, 7, 8];
     $('td').html("");
   }
 
