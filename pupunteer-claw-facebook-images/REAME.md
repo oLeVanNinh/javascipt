@@ -6,7 +6,8 @@ Vài thứ có thể thực hiện với Puppeteer:
  * Tự động submit form, tạo các pre-rendered content
  * Tạo môi trường automation testing
  
-Chúng ta sẽ sử dụng Pupperteer để crawl ảnh từ page có sẵn.
+Với người bình thường khi muốn download ảnh sẽ dùng trình duyệt mở và down từng ảnh một, nhưng khi số lượng cần download lơn làm thủ công sẽ tốn rất nhiều effort, chúng ta là lập trình viên, sẽ làm theo cách "lười" nhất là viết script để trình duyệt "tự chạy". Trang tiến hành crawl:
+
 # 2. Tiến hành
 Để crawl ta sử dụng 3 thư viện của NodeJS là fs, puppetter và image-downloader. Tiến hành cài đặt:
 ```
@@ -46,6 +47,7 @@ Trang tiến hành crawl là một group kín nên ta sẽ phải tiến hành �
   await page.goto("https://www.facebook.com/groups/gaixinhchonloc/photos/")
 })
 ```
+
 Giải thích một chút:
 * ` puppeteer.launch()` hàm này mở browser
 * `browser.newPage()` mở một page mới bằng browser
@@ -95,3 +97,36 @@ const srcs = await getSrc(page);
     })
   }
 ```
+
+Ở phần ban đầu để lấy link của các thẻ của lưới grid nếu làm như thế này chúng ta chỉ lấy được toàn bộ các ảnh khi mới load lần đầu tiên, vì facebook sử dụng lazy load, nghĩa là khi kéo xuống bottom của page sẽ gửi request lên và khi đó mới load tiếp phần còn lại. Vì thế ta sẽ viết thêm function để scroll page đến bottom sau đó mới lấy các links:
+```javascript
+async function scrollPage(page) {
+  let previouseHeight = await page.evaluate(() => {
+    return document.body.scrollHeight; // trả về scrollable height của body hiện tại
+  });
+  let nextHeight = await page.evaluate(() => {
+    return document.body.scrollHeight+1;
+  });
+  let srcs = [];
+
+// mỗi lần thực hiện scroll page xuống 10000px sau đó gán lại nextHeight bằng scrollalbe body height mới, thực hiện đến khi // không tăng nghĩa là đã ở bottom page
+  while(previouseHeight < nextHeight) {
+    await page.screenshot({path: `example${j}.png`})
+    j++;
+    await page.evaluate(() => {
+      window.scrollBy(0, 10000);
+    })
+    await page.waitFor(2000)
+    previouseHeight = nextHeight;
+    nextHeight = await page.evaluate(() => {
+      return document.body.scrollHeight;
+    })
+  }
+  srcs = await getSrc(page);
+  return srcs
+}
+```
+
+Script đầy đủ: https://github.com/oLeVanNinh/javascipt/blob/master/pupunteer-claw-facebook-images/index_group.js
+
+Kết quả: 
