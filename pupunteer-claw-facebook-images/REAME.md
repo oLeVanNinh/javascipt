@@ -7,7 +7,7 @@ Vài thứ có thể thực hiện với Puppeteer:
  * Tạo môi trường automation testing
  
 Với người bình thường khi muốn download ảnh sẽ dùng trình duyệt mở và down từng ảnh một, nhưng khi số lượng cần download lơn làm thủ công sẽ tốn rất nhiều effort, chúng ta là lập trình viên, sẽ làm theo cách "lười" nhất là viết script để trình duyệt "tự chạy". Trang tiến hành crawl:
-
+![Init](https://raw.githubusercontent.com/oLeVanNinh/javascipt/master/pupunteer-claw-facebook-images/imge-data/Screenshot%20from%202019-03-10%2008-35-48.png)
 # 2. Tiến hành
 Để crawl ta sử dụng 3 thư viện của NodeJS là fs, puppetter và image-downloader. Tiến hành cài đặt:
 ```
@@ -130,3 +130,4 @@ async function scrollPage(page) {
 Script đầy đủ: https://github.com/oLeVanNinh/javascipt/blob/master/pupunteer-claw-facebook-images/index_group.js
 
 Kết quả: 
+![result](https://raw.githubusercontent.com/oLeVanNinh/javascipt/master/pupunteer-claw-facebook-images/imge-data/Screenshot%20from%202019-03-10%2021-42-38.png)
