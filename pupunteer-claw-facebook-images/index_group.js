@@ -10,8 +10,8 @@ if (!fs.existsSync(dir)) {
 
 (async () => {
   const ID = {
-    email: 'username',
-    password: "password'"
+    email: 'ninhle.9984@gmail.com',
+    password: "https://www.facebook.com/recover/password/?u=100012093709468&n=bLNaAMyzp1&ars=openid_connect&fl=default_recover&lgdin_eml=1&sih=0"
   }
   const browser = await puppeteer.launch();
   const page = await browser.newPage();

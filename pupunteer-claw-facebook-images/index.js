@@ -10,8 +10,8 @@ if (!fs.existsSync(dir)) {
 
 (async () => {
   const ID = {
-    email: 'username',
-    password: "password'"
+    email: 'ninhle.9984@gmail.com',
+    password: "/home/framgia/Desktop/mobileshop/config/puma.rb'"
   }
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
@@ -29,6 +29,8 @@ if (!fs.existsSync(dir)) {
 
 
   const srcs = await scrollPage(page);
+
+  await page.screenshot({path: "example.png"})
 
   for (var i in srcs) {
     let a = srcs[i];
