@@ -1,3 +1,4 @@
+![](https://github.com/oLeVanNinh/javascipt/blob/master/post/images/first.png)
 # What is this?
 Làm việc với javascript chắc hẳn bản từng làm sử dụng "this" (mặc dùng js sida nhưng nó càng ngày được sử dụng rộng rãi).Nếu bạn từng nghĩ "this" là trỏ đến chính nó thì bạn nên đọc qua bài viết này, còn nếu không thì bạn vẫn nên đọc qua bài viết này =))This là keyword thường gặp trong javascript, dễ gây nhầm lẫn, để hiểu về this, hãy cũng xem xét qua ví dụ sau đây:
 > Although John is handsome, he still F.A
@@ -27,6 +28,7 @@ ngoctrinh.showName.apply(thuytop); // "Thuy Top" this refer đến object thuyto
 ```
 
 # Một số lỗi thường gặp khi sử dụng "this"
+![](https://github.com/oLeVanNinh/javascipt/blob/master/post/images/second.jpg)
 ## 1. Khi hàm sử dụng this được truyền vào như một callback.
 Giả sử ta có một button, mỗi khi click vào ta cần sử lí event click:
 ```javascript
