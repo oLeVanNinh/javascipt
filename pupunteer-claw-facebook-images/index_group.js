@@ -9,20 +9,16 @@ if (!fs.existsSync(dir)) {
 }
 
 (async () => {
-  const ID = {
-    email: 'ninhle.9984@gmail.com',
-    password: "https://www.facebook.com/recover/password/?u=100012093709468&n=bLNaAMyzp1&ars=openid_connect&fl=default_recover&lgdin_eml=1&sih=0"
-  }
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({headless: true});
   const page = await browser.newPage();
   await page.goto('https://facebook.com');
-  await page.type('#email', ID.email);
-  await page.type('#pass', ID.password);
   await page.evaluate(() => {
+    document.getElementById('email').value =  "ninhle.9984@gmail.com"
+    document.getElementById('pass').value =  'https://www.facebook.com/recover/initiate/?ldata=AWfcCzUySS3ujpJOzZp3IjqP3vwBaaYHWDMT1Zjmx7XIy29D3sX_XKJm6iMjtlVTfDKoRUGbYswycLLvD3wPyYmaYLKA383l3pDlfcgBhewnHX-mQ-Nr6Li8GXFIzvCWdHsegj0wg5_RPNNKDd8Pl8ayfWkD3mZ3InwxFI8Aha3ioOwYwrWm-xGV7H13Frw-mM-HyISRYJ721RuwCtNh2rZEAO7dF81lAaddWmWroKPSXWAqBYLT3H1L1FONzq2Hz24'
     document.querySelectorAll("input[data-testid='royal_login_button']")[0].click();
   })
 
-  await page.waitFor(1000)
+  await page.waitFor(2000)
 
   await page.goto("https://www.facebook.com/groups/gaixinhchonloc/photos/")
 
