@@ -1,0 +1,52 @@
+
+:root {
+  font-size: .75em;
+  --main-font: Helvetica, Arial, sans-serif;
+  --brand-color: #369;
+  --main-bg: #fff;
+  --main-color: #000;
+}
+
+body {
+  line-height: 1.2;
+}
+
+@media (min-width: 800px) {
+  :root {
+    font-size: .875em;
+  }
+}
+
+@media (min-width: 1200px) {
+  :root {
+    font-size: 1em;
+  }
+}
+
+.dark {
+  margin-top: 2em;
+  padding: 1em;
+  background-color: #999;
+  --main-bg: #333;
+  --main-color: #fff;
+}
+
+.panel {
+  font-size: 1rem;
+  padding: 1em;
+  border-radius: .5em;
+  border: 1px solid #999;
+  background-color: var(--main-bg);
+  color: var(--main-color)
+}
+
+.panel > h2 {
+  margin-top: 0;
+  font-size: .8rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.panel.large {
+  font-size: 1.2rem;
+}
