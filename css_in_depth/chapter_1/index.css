@@ -1,0 +1,68 @@
+body {
+  font-family: sans-serif;
+}
+
+h1 {
+  font-family: serif;
+  margin-bottom: 10px;
+}
+
+.title {
+  font: bold 32px Helvetica, Arial, sans-serif;
+}
+
+.nav {
+  margin-top: 10px;
+  list-style: none;
+  padding-left: 0;
+}
+
+.nav li {
+  display: inline-block;
+}
+
+.nav a {
+  color: white;
+  background-color: #13a4a4;
+  padding: 5px 15px;
+  border-radius: 2px;
+  text-decoration: none;
+}
+
+.nav .featured {
+  background-color: orange;
+}
+
+a.featured {
+  background-color: orange;
+}
+
+a:link {
+  color: blue;
+  text-decoration: none;
+}
+
+a:visited {
+  color: purple;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+a:active {
+  color: red;
+}
+
+.footer {
+  color: #666;
+  background-color: #ccc;
+  padding: 15px 0;
+  text-align: center;
+  font-size: 14px;
+}
+
+.footer a {
+  color: initial;
+  text-decoration: underline;
+}
