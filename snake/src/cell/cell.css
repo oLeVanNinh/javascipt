@@ -1,0 +1,8 @@
+.cell {
+  width: 40px;
+  height: 40px;
+}
+
+.active {
+  background-color: wheat;
+}
