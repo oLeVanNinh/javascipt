@@ -7,8 +7,9 @@ export default class Cell extends Component {
   }
 
   render() {
+    const el = this.props.value ? 'active' : '';
     return(
-      <div className={"cell " + this.props.active }>*</div>
+      <div className={"cell " + el}>{this.props.index}</div>
     )
   }
 }
