@@ -17,8 +17,8 @@ export  default  class Controls extends  Component {
       <div>
           <button onClick={() => changeDir(-9, 1)}>Up</button>
           <button onClick={() => changeDir(9, 1)}>Down</button>
-          <button onClick={() => changeDir(1, 0)}>Left</button>
-          <button onClick={() => changeDir(-1, 0)}>Right</button>
+          <button onClick={() => changeDir(1, 0)}>Right</button>
+          <button onClick={() => changeDir(-1, 0)}>Left</button>
       </div>
     )
   }

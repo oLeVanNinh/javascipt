@@ -7,7 +7,8 @@ export default class Board extends Component {
     super();
     this.state = {
       board: [...Array(9)].map(e => Array(9).fill(null)),
-      snake: [[1,2]]
+      snake: [[1,2]],
+      direction: null
     }
 
     this.pointInSnake = this.pointInSnake.bind(this);
@@ -15,11 +16,12 @@ export default class Board extends Component {
   }
 
   componentDidMount() {
+    this.setState({direction: this.props.direction})
     let newSnake = this.state.snake;
 
     setInterval(() => {
       newSnake = newSnake.map((e) => {
-        return this.transformCoordinate(e, 9);
+        return this.transformCoordinate(e, this.props.direction);
       })
 
       this.setState({snake: newSnake});

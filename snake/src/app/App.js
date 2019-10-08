@@ -24,7 +24,7 @@ class App extends Component {
   render() {
     return (
         <div>
-          <Board />
+          <Board direction={this.state.direction.dir}/>
           <Controls onClick={this.changeDirection} />
         </div>
 
