@@ -1,4 +1,5 @@
 
+# Design checklist
 - [ ] controls (button, checkbox, etc) - is the color correct?
 - [ ] controls (button, checkbox, etc) - is the size correct?
 - [ ] controls (button, checkbox, etc) - is the font correct?
@@ -8,3 +9,4 @@
 - [ ] Are the Controls(button, checkbox, etc) arranged correctly?
 - [ ] Are the margin between controls(button, checkbox, etc) corrected?
 - [ ] Are the location - the distance between controls (buttons, checkbox, etc) corrected?
+# Logical checklist
