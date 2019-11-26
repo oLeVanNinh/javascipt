@@ -10,3 +10,7 @@
 - [ ] Are the margin between controls(button, checkbox, etc) corrected?
 - [ ] Are the location - the distance between controls (buttons, checkbox, etc) corrected?
 # Logical checklist
+- [ ] Are all controls adding or modifying operation work correctly as expect
+- [ ] All old controls relate to this change is woking well
+- [ ] Has unit test cover for the new modifying
+- [ ] All the unit test should pass
