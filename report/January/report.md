@@ -1,0 +1,27 @@
+# HTTPS hoạt động như thế nào?
+### 1. Tại sao lại cần đến HTTPS?
+Để trả lời cho câu hỏi này, ta cần quay trở lại xx năm về trước, khi mà thế giới ko có hiện đại, tiện nghi, máy tính, điện thoại và internet cũng không có phổ biến như bây giờ, Ngạn và Dũng cùng thích con bé Lan cùng lớp. Mỗi ngày, Ngạn đều viết thư để tán tỉnh và nhờ thằng Dũng gửi cho Lan. Dũng, lúc này với tư cách để loại bớt tình địch có thể mở và xem hết những gì Ngạn viết cho Lan, hoặc tệ hơn nữa nữa có thể thay đổi nội dung thư của Ngạn viết cho Lan, Ngạn khen Lan xinh đẹp dễ thương thì bị Dũng sửa thành chê Lan xấu xí, luộm thuộm. Có lẽ vì thế mà mãi Ngạn và Lan mãi mãi cũng chẳng đến được với nhau do vướng quả núi to đùng là thằng Dũng ở giữa.
+
+Việc này cũng tương tự với việc chúng ta sử dụng giao thức HTTP, các tín hiệu được truyền đi trong giao thức này là các gói tin dưới dạng plain text, các gói tin này trong quá trình truyền đi trên mạng hoàn toàn có thể bị hacker đọc trộm hoặc tệ hơn là thay đổi nội dung của gói tin.
+
+Vấn đề trên được giải quyết bằng cách là mã hóa thông tin, như trường hợp trên Ngạn có thể sử dụng môn ngôn ngữ chung giữa 2 người sao cho chỉ Lan và Ngan hiểu, trong trường hợp này hợp lý nhất là sử dụng teen code như Ngại viết `I love you` sẽ được mã hóa thành `j |_0v3 y0u` khi đó Dũng ko có hiểu biết về teen code thì ko thể xem trộm được.
+
+Tương tự, là sử dụng phương thức HTTPS, mỗi gói tin sử dụng đều được mã hóa khi gửi đi sao cho chỉ phía client và server có thể encrypt và decrypt nội dung của gói tin mà bên thứ không tác động vào được.
+
+### 2. Cách thức hoạt động của HTTPS
+#### 2.1 Phương thức mã hóa dữ liệu
+Có 2 thuật toán mã hóa dữ liệu được sử dụng là:
+
+- Mã hóa đối xứng (symmetric): trường hợp này hiểu đơn giản là việc mã hóa dữ liệu sẽ sử dụng 1 key + thuật toán mã hóa để mã hóa dữ liệu. Trong trường hợp muốn giải mã ngược lại để lấy dữ liệu thì sử dụng chính key đó + thuật toán để giải mã dữ liệu. Có thể hình dung việc mã hóa này tương tự như cho toàn bộ data vào trong một chiếc hộp, sau đó thì khóa lại, chỉ những ai sở hữu chìa khóa này mới có thể mở được cái hộp đó, nhưng trường hợp này vấn đề sinh ra là làm thể nào để gửi chiếc chìa khóa đó cho người nhận để có thể mở khi nhận được cái hộp.
+- Mã hóa không đối xứng (asymmetric): khác với mã hóa đối xứng, mã hóa không đối xứng sử dụng một cặp pair-key được biết đến là private key - public key, public key được sử dụng để mã hóa dữ liệu, điều đặc biệt là ta không cần quan tâm đến public key và có thể gửi nó cho bất kì ai bởi key này chỉ có thể sử dụng để mã hóa dữ liệu, dữ liệu chỉ có thể giải mã bằng cách sử dụng private key.
+
+Mỗi phương thức mã hóa đều đóng vai trò trò nhất định trong việc mã hóa dữ liệu trong phuong thức HTTPS
+
+#### 2.2 The SSL handshake.
+
+Với mỗi phương thức mã hóa thì đều cần key để có thể mã hóa và giải mã dữ liệu, nhưng việc trao đổi key qua internet giữa client và server cũng không hề đơn giản, việc trao đổi key này phải diễn ra sao cho khi kết thúc quá trình này cả client và server đều có key cần thiết để và quá trình đảm bảo sao cho bên thứ 3 không thể tác động vào. Quá trình này diễn ra gồm các step như sau:
+- Hello from client: khi thực hiện kết nối đến server nội dung message bao gồm version SSH/TLS mà, các thuật toán mã hóa mà phía client hỗ trợ và random bytes được sinh ra từ phía client.
+- Hello from server: server sẽ lựa chọn version SSH/TLS và thuật toán trong số được client gửi lên và gửi lại cho client kèm với random bytes được sinh ra từ phía server ssl certificate, trong đó bao gồm public key
+- Key exchange: client verify certificate nhận được phía server là hợp lệ. Ví dụ khi bạn truy cập vào website của google, phía server sẽ gửi lại ssl certificate, lúc này phía client cần xác đây là certificate của google chứ không phải certificate của ai đó giả mạo google. Có 2 cách để thực hiện việc verify, một là cách đơn giản nhất, trên máy tính của client có sẵn một list certificate và chỉ việc verify lại trên list này, cách thứ hai phức tạp hơn là sử dụng bên thứ 3 - Certificate Authority để xác nhận cho bạn certificate này đúng là của google, thường sử dụng là DigiCert. Điều này có nghĩa là DigiCert là người biết google, bạn nhận được certificate của server và nói rằng đây là certificate từ google, bạn không biết điều này đúng hay sai, lúc này bạn nhờ DigiCert verify xem liệu đây có phải certificate của google hay không, lúc này thì client chỉ cần `"trust"` DigiCert và nhận kết quả verify từ bên thứ 3 này. Sau khi verify xong ssh certificate, nếu certificate là hợp lệ thì phía client sẽ sinh ra một pre-masterkey, sau đó client sẽ mã hóa key này bằng cách sử dụng public key trong nhận được từ certificate và gửi lại cho phía server. Lưu ý là từ đầu đến bây giờ mọi trao đổi giữa client và server vẫn đang diễn ra trên giao thức HTTP.
+- Change cypher spec: server sử dụng private key để giải mã và lấy pre-master key được gửi lên từ phía client, điều này có thể thực hiện vì pre-masterkey trước khi gửi lên được mã hóa bằng phương thức mã hóa không đối xứng và sử dụng public key của server
+- Generate master key: được sinh ra bằng cách sử dụng pseudo-random function và pre-masterkey cộng với ClientHello.random và ServerHello.random. Lúc này cả client và server đều sinh ra master key giống nhau, sau đó mọi thông tin trao đổi giữa client và server đề được sử dụng bằng key này để mã hóa và giải mã dữ liệu, sử dụng phương thức mã hóa đối xứng.
