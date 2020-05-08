@@ -1,4 +1,4 @@
-## Quản lý hệ thống và tiến trình trong linux
+## Quản lý tiến trình trong linux
 ### 1. Hiểu về tiến trình trong linux
 Khi máy tính khởi động, trước hết nó sẽ bắt đầu kernel, kernel sẽ chịu trách nhiệm bắt đầu tiến trình đầu tiên gọi là tiến trình `init`, tiến trình này sẽ chịu trách nhiệm cho tất cả các tiến trình khác. Khi bắt đầu khởi chạy một tiến trình, `init` sẽ bắt đầu tiến trình đó như là tiến trình con của nó. Ví dụ, `init` sẽ bắt đầu tiến trình `mingetty`, tiến trình này sẽ chịu trách nhiệm mở một login shell và từ `mingetty` tiến trình `bash` được khởi chạy và cho phép người dùng làm việc với command line
 
