@@ -47,5 +47,50 @@ Which service should an organization use if it requires an easily managed and sc
 
 A. AWS Lambda
 B. Auto Scaling
-C. AWS Elastic Beanstalk
+<mar>C. AWS Elastic Beanstalk</mark>
 D. Elastic Load Balancing
+
+## Question 66
+An Administrator is hosting an application on a single Amazon EC2 instance, which users can access by the public hostname. The administrator is adding a second instance, but does not want users to have to decide between many public hostnames.
+Which AWS service will decouple the users from specific Amazon EC2 instances?
+
+A. Amazon SQS
+B. Auto Scaling group
+C. Amazon EC2 security group
+<mark>D. Amazon ELB</mark>
+
+## Question 67
+A Solutions Architect is designing a microservices-based application using Amazon ECS. The application includes a WebSocket component, and the traffic needs to be distributed between microservices based on the URL.
+Which service should the Architect choose to distribute the workload?
+
+A. ELB Classic Load Balancer
+B. Amazon Route 53 DNS
+<mark>C. ELB Application Load Balancer</mark>
+D. Amazon CloudFront
+
+## Question 68
+A Solutions Architect is designing the storage layer for a production relational database. The database will run on Amazon EC2. The database is accessed by an application that performs intensive reads and writes, so the database requires the LOWEST random I/O latency.
+Which data storage method fulfills the above requirements?
+
+A. Store data in a filesystem backed by Amazon Elastic File System (EFS).
+B. Store data in Amazon S3 and use a third-party solution to expose Amazon S3 as a filesystem to the database server.
+C. Store data in Amazon Dynamo DB and emulate relational database semantics.
+<mark>D. Stripe data across multiple Amazon EBS volumes using RAID 0.</mark>
+
+## Question 69
+A Solutions Architect is designing a VPC. Instances in a private subnet must be able to establish IPv6 traffic to the Internet. The design must scale automatically and not incur any additional cost.
+This can be accomplished with:
+
+<mark>A. an egress-only internet gateway</mark>
+B. a NAT gateway
+C. a custom NAT instance
+D. a VPC endpoint
+
+## Question 70
+A web application stores all data in an Amazon RDS Aurora database instance. A Solutions Architect wants to provide access to the data for a detailed report for the Marketing team, but is concerned that the additional load on the database will affect the performance of the web application.
+How can the report be created without affecting the performance of the application?
+
+<mark>A. Create a read replica of the database.</mark>
+B. Provision a new RDS instance as a secondary master.
+C. Configure the database to be in multiple regions.
+D. Increase the number of provisioned storage IOPS.
