@@ -38,14 +38,16 @@ window.onload = function() {
   }
 
   function advanceSnake() {
-    const old_head = snake[0];
-    const x = old_head.x + dx > 300 ? old_head.x + dx - 300 : old_head.x + dx;
-    const y = old_head.y + dy > 300 ? old_head + dy - 300 : old_head.y + dy;
-    const head = { x: x + dx, y: y };
+    const oldHead = snake[0];
+    const newX = oldHead.x + dx >= 300 ? oldHead.x + dx - 300 : oldHead.x + dx;
+    const newY = oldHead.y + dy >= 300 ? oldHead.y + dy - 300 : oldHead.y + dy;
+    const head = { x: newX, y: newY };
+    console.log(head.x);
     snake.unshift(head);
     const didEatFood = snake[0].x === foodX && snake[0].y === foodY;
     if (didEatFood) {
       createFood();
+      drawFood();
     }
     else {
       const tail = snake.pop();
@@ -56,6 +58,8 @@ window.onload = function() {
   function clearCanvas(position) {
     ctx.fillStyle = CANBAS_BACKGROUND_COLOR;
     ctx.fillRect(position.x, position.y, 10, 10);
+    ctx.strockstyle = CANVAS_BORDER_COLOR;
+    ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
   }
 
   function changeDirection(event) {
@@ -70,6 +74,7 @@ window.onload = function() {
     const goingRight = dx === 10;
     const goingLeft = dx === -10;
 
+    console.log('er')
     if (keyPressed == LEFT_KEY && !goingRight) {
       dx = -10;
       dy = 0;
@@ -113,11 +118,24 @@ window.onload = function() {
     ctx.fillRect(foodX, foodY, 10, 10);
   }
 
+  function moving() {
+    setInterval(() => {
+      advanceSnake();
+      drawSnake();
+    }, 100)
+  }
+
   function start() {
+    document.onkeydown = changeDirection;
+
     setTimeout(function onTick() {
       createFood();
       drawFood();
       advanceSnake();
+      drawSnake();
+      moving()
     }, 100)
   }
+
+  start()
 }
