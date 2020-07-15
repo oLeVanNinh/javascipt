@@ -3,6 +3,7 @@ window.onload = function() {
   const CANBAS_BACKGROUND_COLOR = "white"
   const SNAKE_COLOR = "lightgreen";
   const SNAKE_BORDER_COLOR = "darkgreen";
+  let timer;
 
   let snake = [
     {x: 150, y: 150},
@@ -42,7 +43,12 @@ window.onload = function() {
     const newX = newHeadCordinator(oldHead.x, dx);
     const newY = newHeadCordinator(oldHead.y, dy);
     const head = { x: newX, y: newY };
-    console.log(head.x);
+
+    if (isHitSnakeBody(head)) {
+      clearInterval(timer);
+      console.log("Game ended")
+    }
+
     snake.unshift(head);
     const didEatFood = snake[0].x === foodX && snake[0].y === foodY;
     if (didEatFood) {
@@ -88,7 +94,6 @@ window.onload = function() {
     const goingRight = dx === 10;
     const goingLeft = dx === -10;
 
-    console.log('er')
     if (keyPressed == LEFT_KEY && !goingRight) {
       dx = -10;
       dy = 0;
@@ -133,10 +138,19 @@ window.onload = function() {
   }
 
   function moving() {
-    setInterval(() => {
+    timer = setInterval(() => {
       advanceSnake();
       drawSnake();
     }, 100)
+  }
+
+  function isHitSnakeBody(newHead) {
+    for (let part of snake) {
+      if (part.x === newHead.x && part.y === newHead.y) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function start() {
