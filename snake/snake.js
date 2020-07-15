@@ -39,8 +39,8 @@ window.onload = function() {
 
   function advanceSnake() {
     const oldHead = snake[0];
-    const newX = oldHead.x + dx >= 300 ? oldHead.x + dx - 300 : oldHead.x + dx;
-    const newY = oldHead.y + dy >= 300 ? oldHead.y + dy - 300 : oldHead.y + dy;
+    const newX = newHeadCordinator(oldHead.x, dx);
+    const newY = newHeadCordinator(oldHead.y, dy);
     const head = { x: newX, y: newY };
     console.log(head.x);
     snake.unshift(head);
@@ -53,6 +53,20 @@ window.onload = function() {
       const tail = snake.pop();
       clearCanvas(tail);
     }
+
+  }
+
+  function newHeadCordinator(oldCordinate, step) {
+    const newCordinate = oldCordinate + step;
+    if (newCordinate >= 300) {
+      return newCordinate - 300;
+    }
+
+    if (newCordinate < 0) {
+      return 300 + newCordinate;
+    }
+
+    return newCordinate;
   }
 
   function clearCanvas(position) {
