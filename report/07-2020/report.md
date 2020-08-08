@@ -45,3 +45,5 @@ http {
 	include /etc/nginx/sites-enabled/*;
 }
 ```
+NGINX sử dụng các chỉ thị (directive) để thiết lập giá trị các thuộc tính của cấu hình, làm việc với NGINX nghĩa là phải cấu hình server NGINX chạy đúng với nhu cầu sử dụng thực tế. Dưới đây là directive cấu hình mặc định:
++ `user`: 
