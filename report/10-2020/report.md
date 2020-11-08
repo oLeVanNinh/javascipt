@@ -1,3 +1,5 @@
+## Original Article: https://shopify.engineering/how-fix-slow-code-ruby
+
 ## How to Fix Slow Code in Ruby
 ![](imgs/Flamegraph.jpg)
 Ở Shopify, chúng tôi tin tưởng vào các team  được liên kết chặt chẽ với nhau để giúp phát triển nhanh chóng. Vì có nhiều nhóm làm việc độc lập trên một ứng dụng Rails nguyên khối lớn ([Monolithic Application](https://en.wikipedia.org/wiki/Monolithic_system)), các đoạn code ko được tối ưu vô tình được thêm vào codebase. Theo thời gian dẫn đến sự tụt giảm nghiêm trọng về hiệu suất.
