@@ -143,7 +143,388 @@ Mappings:
       HVMG2: ami-0aeb704d503081ea6
     ...
 ```
-Phần maping được dùng khai báo map kiểu instance với các arch và ami tương ứng trong từng region
+Phần maping được dùng khai báo map kiểu instance với các arch và ami tương ứng trong từng region, được sử dụng cụ thể khi ở phần tạo instance trong template
 
 ## Resources
 ### VPC
+* Tạo VPC
+Để tạo VPC ta chỉ cần tạo resource VPC, trong đó giá trị `Type` là `AWS::EC2::VPC`, mọi resourc đều phải được khai báo `Type`, từ đó mà CloudFormation xác định
+được resource cần tạo tương ứng với AWS. Khi tạo các resource trên console ta cần điền các tham số tương ứng cho resource đó, tương tự khi làm trên CloudFormation
+ta sẽ khai báo các thông số này ở giá trị `Properties`, tùy mỗi loại resource khác nhau sẽ có các giá trị properties tương ứng khác nhau
+Để tra cứu ta chỉ việc google "Tên resource" + cloudformation, sẽ dẫn đến trang document của resource đó, như trường hợp này document của VPC:
+https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpc.html
+
+Trong đó toàn bộ các thuộc tính tương ứng để khai báo 1 resource VPC trên CloudFormation như sau:
+
+```yaml
+Type: AWS::EC2::VPC
+Properties:
+  CidrBlock: String
+  EnableDnsHostnames: Boolean
+  EnableDnsSupport: Boolean
+  InstanceTenancy: String
+  Tags:
+    - Tag
+```
+Ko phải mọi giá trị `Properties` đều là bắt buộc, như của VPC thì chỉ có `CidrBlock`, trường hợp này ta chỉ cần tạo VPC đơn giản với `CidrBlock` là `10.0.0.0/16` nên sẽ trông như sau:
+```yaml
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 10.0.0.0/16
+```
+* Tạo subnet:
+Làm tương tự với VPC, để tạo public subnet như sau:
+
+```yaml
+PublicSubnetA:
+  Type: 'AWS::EC2::Subnet'
+  Properties:
+    VpcId: !Ref VPC
+    CidrBlock: 10.0.0.0/24
+    AvailabilityZone: us-east-1a
+    MapPublicIpOnLaunch: true
+```
+Ở đây có sử dụng instrinsic function là `Ref`, cách sử dụng
+```
+// yml
+!Ref resource
+// JSON
+{ "Ref": resource },
+```
+`Ref` có thể sử dụng với paramter hay logical resource được khai báo trong CloudFormation, khi dùng với paramenter sẽ trả về giá trị của parameter, còn khi dùng với resource thì trả về giá trị của resource thường là physical ID
+Bên trên là sample của một subnet, các subnet còn lại làm tương tự, chỉ việc thay đổi các `Properties` tương ứng như khi tạo bằng tay trên console
+
+* Tạo InternetGateway
+Default VPC sẽ được attach với 1 InternetGateway, trong trường hợp này ta phải tự tạo InternetGateway và attach nó với VPC vừa tạo, làm với CloudFormation như sau:
+
+```yaml
+VPCInternetGateway:
+  Type: 'AWS::EC2::InternetGateway'
+VpcGatewayAttachment:
+  Type: 'AWS::EC2::VPCGatewayAttachment'
+  Properties:
+    InternetGatewayId: !Ref VPCInternetGateway
+    VpcId: !Ref VPC
+```
+Đầu tiên là tạo InternetGateway, sau đó là tạo VPCGatewayAttachment để attach InternetGateway với VPC
+
+* RouteTable, Route
+Để dễ quản lý ta ko gộp chung toàn bộ các rule vào trong 1 route mà chia ra các route table tương ứng, trên CloufFormation sẽ làm bằng cách:
+1. Tạo route table: phần mẫu bên dưới dùng để tạo route table cho các public subnet
+```yaml
+  PublicRT:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+```
+
+2. Tạo route: trong route table sẽ có các rule map các xem network đi từ đâu đến đâu, phần này là public nên ta sẽ map mọi request đến InternetGateway:
+```yaml
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    Properties:
+      RouteTableId: !Ref PublicRT
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref VPCInternetGateway
+```
+3. Liên kết subnet vào route table
+```yaml
+  PublicARouteAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      RouteTableId: !Ref PublicRT
+      SubnetId: !Ref PublicSubnetA
+```
+* NACL (Network Access Control List)
+Phần này sẽ bao gồm:
+1. Tạo ACL:
+```yaml
+  NetworkAclPublic:
+    Type: 'AWS::EC2::NetworkAcl'
+    Properties:
+      VpcId: !Ref VPC
+```
+2. Liên kết subnet vào ACL: cần liên kết bao nhiêu subnet thì cần tạo bấy nhiêu association
+```YAML
+  SubnetNetworkAclAssociationPublicA:
+    Type: 'AWS::EC2::SubnetNetworkAclAssociation'
+    Properties:
+      NetworkAclId: !Ref NetworkAclPublic
+      SubnetId: !Ref PublicSubnetA
+```
+3. Tạo các rule allow hay deny khi có traffic đi vào: đây là public nên sẽ allow mọi traffic
+```YAML
+  NetworkAclEntryPublicInAllowAll:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId: !Ref NetworkAclPublic
+      RuleNumber: 99
+      Protocol: -1
+      RuleAction: allow
+      Egress: false
+      CidrBlock: 0.0.0.0/0
+  NetworkAclEntryPublicOutAllowAll:
+    Type: 'AWS::EC2::NetworkAclEntry'
+    Properties:
+      NetworkAclId: !Ref NetworkAclPublic
+      RuleNumber: 99
+      Protocol: -1
+      RuleAction: allow
+      Egress: true
+      CidrBlock: 0.0.0.0/0
+```
+* Tạo RDS cluster và rds instance
+1. Tạo subnet group
+Trước khi tạo RDS thì cần tạo subnet group để đảm bảo khi tạo RDS instance sẽ nằm trong subnet mong muốn, trường hợp này RDS instance sẽ nằm các private DB subnet:
+```YAML
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupName: rdssubnet
+      DBSubnetGroupDescription: Private group subnet for db
+      SubnetIds:
+        - !Ref PrivateDBSubnetA
+        - !Ref PrivateDBSubnetB
+        - !Ref PrivateDBSubnetC
+```
+2. Tạo security group
+Tạo 1 security group chỉ cho phép traffic đi vào từ instance security group:
+```YAML
+  DBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Enable access to SQL connect
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          SourceSecurityGroupId: !GetAtt
+            - InstanceSecurityGroup
+            - GroupId
+```
+Ở đây có sử dụng instrinsic function `GetAtt` để lấy thuộc tính của một logical resource trong template, syntax như sau:
+```yaml
+// YAML
+!GetAtt
+  - Logical resource name
+  - Attribute
+// JSON
+{"Fn::GetAtt": ["Logical resource name", "Attribute"] }
+```
+Tùy loại resource nào mà các attribute hỗ trợ để get được cũng khác nhau, trường hợp ko có attribute tương ứng sẽ có lỗi khi tạo stack từ template
+
+3. Tạo rds cluster:
+```YAML
+  DBCluster:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      Engine: aurora-mysql
+      EngineVersion: 5.7.mysql_aurora.2.04.7
+      MasterUsername: !Ref DBUser
+      MasterUserPassword: !Ref DBRootPassword
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !GetAtt
+          - DBSecurityGroup
+          - GroupId
+```
+Các thông tin username, passwor được lấy từ parameter, subnet và security group được lấy từ resource được tạo ở bên trên
+
+4. Tạo rds instance:
+```YAMl
+  DBInstance:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBClusterIdentifier: !Ref DBCluster
+      DBInstanceClass: db.t2.medium
+      Engine: aurora-mysql
+```
+Nếu tạo trên console, thì khi tạo cluster bắt buộc phải tạo instance, CloudFormation cho phép tạo cluster trước rồi mới tạo instance, phần `DBInstanceClass` thường sẽ dùng paramter nhưng do người viết lười nên fix luôn khi tạo.
+
+* Tạo WebServer:
+Ý tưởng của người viết là tạo 1 server, sau đó cài đặt ruby, rồi generate ra 1 app đơn giản, sau đó thì tạo AMI từ server này, dùng AMI để tạo cho 1 autoscaling, sau đó thì tắt instance, phần cài đặt toàn bộ sử dụng cloud-init, để viết chi tiết về phần này thì khá dài nên người viết sẽ skip và để link template bên dưới =))
+
+* Tạo AMI
+Ko phải mọi resource hiện tại đều được AWS hỗ trợ, trường hợp này cũng vây, CloudFormation ko hỗ trợ việc tạo AMI, nên trường hợp này cần dùng đến custom resource, các resource này sẽ khai báo `Type` kiểu `Custom::"Tên custom resource"`. Để tạo AMI ta cần tạo custom resource, sau đó dùng 1 lambda function để tạo AMI.
+
+1. Tạo AMI custom resource
+```YAML
+  AMI:
+    Type: 'Custom::AMI'
+    Properties:
+      ServiceToken: !GetAtt
+        - AMIFunction
+        - Arn
+      InstanceId: !Ref WebServer
+      ImageName: !Ref AMIName
+```
+`ServiceToken` là `Properties` duy nhất bắt buộc, là nơi là CloudFormation gửi resquest đến, bên dưới là `InstanceId` và `ImageName` sẽ được gửi kèm trong request
+
+2. Tạo role cho Lambda: tạo role với policy cần thiết để tạo lamba function
+
+```YAML
+  LambdaExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
+      Path: /
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole'
+        - 'arn:aws:iam::aws:policy/service-role/AWSLambdaRole'
+      Policies:
+        - PolicyName: EC2Policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ec2:DescribeInstances'
+                  - 'ec2:DescribeImages'
+                  - 'ec2:CreateImage'
+                  - 'ec2:StopInstances'
+                Resource:
+                  - '*'
+```
+3. Tạo lambda function:
+```YAML
+  AMIFunction:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt
+        - LambdaExecutionRole
+        - Arn
+      Code:
+        ZipFile: !Join
+          - ... function code
+      Runtime: python3.8
+      Timeout: '900'
+```
+Bên trên tạo lambda function, chứ năng là sẽ lấy instance id từ request được gọi sang custom resource, sau đó tạo AMI từ từ instance trên, sau khi tạo xong thì gửi lại AMI id cho custom resource, việc này được thực hiện thông qua cfn-response, tùy mỗi ngôn ngữ sẽ viết thư viện riêng
+
+```python
+# require sdk and cfn-response lib
+import cfnresponse
+import boto3
+
+def handler(event, context):
+  # Get information about instance
+  ec2 = boto3.resource('ec2')
+  instance_id = event['ResourceProperties']['InstanceId']
+  image_name = event['ResourceProperties']['ImageName']
+  instance = ec2.Instance(instance_id)
+
+  # create image
+  image = instance.create_image(Name=image_name)
+
+  # resolved_image is write bellow but not showing here, it's wait until image creation complete and  send signal back to CloudFormation by using cfn-response:
+  # cfnresponse.send(event, context, cfnresponse.SUCCESS, {'image_id': image.id}, image.id)
+  # Usage of cfn-response: cfnresponse.send(event, context, status, data, physicalID)
+  # CloudFormation will wait until get signal or timeout
+  resolved_image(image, event, context)
+  instance.stop()
+```
+
+* Tạo LauchConfig
+```YAML
+  LaunchConfig:
+    Type: 'AWS::AutoScaling::LaunchConfiguration'
+    DependsOn: AMI
+    Properties:
+      ImageId: !GetAtt
+        - AMI
+        - image_id
+      KeyName: !Ref KeyName
+      SecurityGroups:
+        - !Ref InstanceSecurityGroup
+      InstanceType: !Ref InstanceType
+      UserData: !Base64
+        'Fn::Join':
+          - ''
+          - - |
+              #!/bin/bash -xe
+            - |
+              yum update -y aws-cfn-bootstrap
+            - '/opt/aws/bin/cfn-signal -e 0 --stack '
+            - !Ref 'AWS::StackName'
+            - ' --resource WebServerGroup '
+            - ' --region '
+            - !Ref 'AWS::Region'
+```
+Đến khi AMI được tạo xong thì LauchConfig mới được tạo, ở phần UserData có sử dụng cfn-singal để gửi signal khi resource được tạo cho `WebServerGroup` sẽ được đề cập ở bên dưới.
+
+* Tạo ALB, Listener, TargetGroup
+
+```YAMl
+  ApplicationLoadBalancer:
+    Type: 'AWS::ElasticLoadBalancingV2::LoadBalancer'
+    Properties:
+      Subnets:
+        - !Ref PublicSubnetA
+        - !Ref PublicSubnetB
+        - !Ref PublicSubnetC
+      SecurityGroups:
+        - !Ref ALBSecurityGroup
+  ALBListener:
+    Type: 'AWS::ElasticLoadBalancingV2::Listener'
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroup
+      LoadBalancerArn: !Ref ApplicationLoadBalancer
+      Port: '80'
+      Protocol: HTTP
+  ALBTargetGroup:
+    Type: 'AWS::ElasticLoadBalancingV2::TargetGroup'
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 3
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 5
+      VpcId: !Ref VPC
+```
+
+Snippet bên trên tạo 1 ALB, Lister và forward http traffic từ ALB vào Target Group, tương tự như khi tạo trên console.
+
+* Tạo server autoscaling
+```YAML
+  WebServerGroup:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    Properties:
+      VPCZoneIdentifier:
+        - !Ref PrivateSubnetA
+        - !Ref PrivateSubnetB
+        - !Ref PrivateSubnetC
+      LaunchConfigurationName: !Ref LaunchConfig
+      MinSize: '2'
+      MaxSize: '2'
+      TargetGroupARNs:
+        - !Ref ALBTargetGroup
+      HealthCheckType: ELB
+      HealthCheckGracePeriod: '300'
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+    UpdatePolicy:
+      AutoScalingRollingUpdate:
+        MinInstancesInService: '1'
+        MaxBatchSize: '1'
+        PauseTime: PT15M
+        WaitOnResourceSignals: 'true'
+```
+AutoScaling Group được tạo dùng LauchConfig được tạo bên trên, lý do ở LaunchConfig có sử dụng cfn-signal ở user data vì ở `WebServerGroup` ta dùng `CreationPolicy`, nghĩa là ta muốn resource CloudFormation đợi cho đến khi các EC2 instance được chạy thành công hết trước khi thay đổi trạng thái resource. AutoScaling dùng Rolling Update Policy, mỗi lần thực hiện update chỉ thay thế từng instance trong group
+
+Template đầy đủ: https://github.com/oLeVanNinh/cloudFormationTemplate/blob/main/autoscaling.json
