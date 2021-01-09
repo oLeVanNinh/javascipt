@@ -60,7 +60,7 @@ Tại Shopify, chúng tôi sử dụng một công cụ được gọi là [Larg
 ## Hiệu suất của Rails
 Thu rộng hơn từ Active Record, Rails còn nhiều phần khác như Active Support, Active Job, Action Pack, etc. Dưới đây là một best practice tổng quát để viết fast code trong Ruby on Rails.
 
-### Cache mọ thứ
+### Cache mọi thứ
 Nếu bạn không thể tạo ra thứ gì đó nhanh hơn, thì một giải pháp thay thế tốt là lưu vào bộ nhớ cache. Những thứ như biên dịch các view phức tạp, API gọi từ bên ngoài có thể được hưởng lợi rất nhiều từ cache. Đặc biệt nếu dữ liệu kết quả không thay đổi thường xuyên. Nhìn gần hơn với kĩ thuật cache cơ bản, tên cache và thời gian hết hạn rất quan trọng để sử dụng cache hiệu quả. Ví dụ:
 ```ruby
 
@@ -177,3 +177,5 @@ Calculating -------------------------------------
       method_missing      5.824M (± 7.9%) i/s -     28.994M in   5.014984s
 ```
 Ít ngạc nhiên hơn, method được gọi với `send` hay `method_missing` chậm hơn nhiều so với cách gọi thông thường. Mặc dù những khác biệt này có vẻ rất nhỏ, chúng tăng lên nhanh chóng khi code base lớn hoặc khi được gọi đệ quy nhiều lần. Như  rule of thumb, hạn chế dùng metaprogramming có thể ngăn nhưng phần chậm ko cần thiết.
+
+Ref: https://shopify.engineering/write-fast-code-ruby-rails
