@@ -1,0 +1,154 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Parameters:
+  DBHost:
+    Type: String
+    Description: Database host name
+    ConstraintDescription: Host name for MySQL access
+    MinLength: 8
+
+  DBName:
+    Type: String
+    Description: DB name
+    ConstraintDescription: Database name for MySQL access
+    Default: test
+    MinLength: 1
+
+  DBUser:
+    Type: String
+    Description: DB user for MySQL access
+    MinLength: 1
+    MaxLength: 64
+    Default: test
+
+  DBPassword:
+    Type: String
+    Description: Database password for MySQL access
+    NoEcho: true
+    MinLength: 1
+    MaxLength: 64
+
+  VPC:
+    Type: String
+    Description: VPC id for security group
+    MinLength: 1
+
+  SubnetIds:
+    Type: String
+    Description: List subnet ids for lambda function, seperate by comma
+    MinLength: 1
+
+  SecurityGroupId:
+    Type: String
+    Description: List subnet ids for lambda function, seperate by comma
+    MinLength: 0
+    Default: ""
+
+  S3ENDPOINT:
+    Type: String
+    Description: Endpoint s3 for asset hosting
+    MinLength: 1
+
+Conditions:
+  SecurityGroupNotExist:
+    !Equals
+      - !Ref SecurityGroupId
+      - ''
+
+Resources:
+  LambdaSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Condition: SecurityGroupNotExist
+    Properties:
+      GroupDescription: Enable HTTP and HTTPs access for lambda
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  SinatraFunction:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      FunctionName: SinatraApp
+      Handler: lambda_function.lambda_handler
+      Runtime: ruby2.5
+      CodeUri: "./"
+      MemorySize: 256
+      Timeout: 30
+      Policies:
+        - Statement:
+          - Sid: CreateNetworkInterface
+            Effect: Allow
+            Action:
+            - ec2:DescribeNetworkInterfaces
+            - ec2:CreateNetworkInterface
+            - ec2:DeleteNetworkInterface
+            - ec2:DescribeInstances
+            - ec2:AttachNetworkInterface
+            Resource: "*"
+      Environment:
+        Variables:
+          DBHost: !Ref DBHost
+          DBName: !Ref DBName
+          DBUser: !Ref DBUser
+          DBPassword: !Ref DBPassword
+          S3ENDPOINT: !Ref S3ENDPOINT
+      VpcConfig:
+        SecurityGroupIds:
+          - !If [SecurityGroupNotExist, !GetAtt LambdaSecurityGroup.GroupId, !Ref SecurityGroupId]
+        SubnetIds: !Split [",", !Ref SubnetIds]
+
+      Events:
+        SinatraApi:
+            Type: Api
+            Properties:
+                Path: /
+                Method: ANY
+                RestApiId: !Ref SinatraAPI
+  SinatraAPI:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: 0218SinatraRefundAPI
+      StageName: Prod
+      DefinitionBody:
+        swagger: '2.0'
+        basePath: '/Prod'
+        info:
+          title: !Ref AWS::StackName
+        paths:
+          /{proxy+}:
+            x-amazon-apigateway-any-method:
+              responses: {}
+              x-amazon-apigateway-integration:
+                uri:
+                  !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SinatraFunction.Arn}/invocations'
+                passthroughBehavior: "when_no_match"
+                httpMethod: POST
+                type: "aws_proxy"
+          /:
+            get:
+              responses: {}
+              x-amazon-apigateway-integration:
+                uri:
+                  !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${SinatraFunction.Arn}/invocations'
+                passthroughBehavior: "when_no_match"
+                httpMethod: POST
+                type: "aws_proxy"
+  ConfigLambdaPermission:
+    Type: "AWS::Lambda::Permission"
+    DependsOn:
+    - SinatraFunction
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref SinatraFunction
+      Principal: apigateway.amazonaws.com
+Outputs:
+  SinatraAppUrl:
+    Description: App endpoint URL
+    Value: !Sub "https://${SinatraAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
